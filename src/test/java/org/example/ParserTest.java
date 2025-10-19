@@ -1,7 +1,8 @@
 package org.example;
 
 import org.junit.Test;
-import java.io.IOException;
+
+import static org.testng.AssertJUnit.*;
 
 public class ParserTest {
 
@@ -22,7 +23,7 @@ public class ParserTest {
                     endif
                 endwhile
                 """;
-        parser.parse(correctProgram);
+        assertTrue(parser.parse(correctProgram));
     }
 
     @Test
@@ -40,7 +41,7 @@ public class ParserTest {
                     write a
                 endif
                 """;
-        parser.parse(incorrectProgram);
+        assertFalse(parser.parse(incorrectProgram));
 
     }
 

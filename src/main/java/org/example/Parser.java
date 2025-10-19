@@ -73,11 +73,11 @@ public class Parser {
         try {
             nextToken = scanner.scan();
             Program();
+            return true;
         } catch (IOException e) {
             error("Error parsing program");
             return false;
         }
-        return true;
     }
 
     //-----------------------------Grammar-----------------------------
@@ -122,7 +122,7 @@ public class Parser {
             }
         }
 
-        throw new parseException("Var() failed, Stop on Token: " + nextToken);
+        error("Var() failed, Stop on Token: " + nextToken);
 
     }
 
