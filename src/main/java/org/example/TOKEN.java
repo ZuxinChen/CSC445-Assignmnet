@@ -20,10 +20,5 @@ public enum TOKEN {
     INTLITERAL,
     STRING,
     MINUS,
-    AND,
-    OR,
-    LEFT_BRACKET,
-    RIGHT_BRACKET,
-    UNDEFIND
 
 }
