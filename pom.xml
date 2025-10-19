@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>CSC445-Assignmnet1</artifactId>
+    <artifactId>CSC445-Assignmnet</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>

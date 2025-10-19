@@ -74,18 +74,10 @@ public class Scanner {
                 return TOKEN.PLUS;
             case '-':
                 return TOKEN.MINUS;
-            case '&':
-                return TOKEN.AND;
-            case '|':
-                return TOKEN.OR;
             case '=':
                 return TOKEN.EQUALS;
             case '"':
                 return StringToken(c);
-            case '(':
-                return TOKEN.LEFT_BRACKET;
-            case ')':
-                return TOKEN.RIGHT_BRACKET;
             case '!':
                 c = readNextChar();
                 TokenString.append((char) c);
@@ -96,8 +88,9 @@ public class Scanner {
                 break;
         }
 
-        return TOKEN.UNDEFIND;
+        return null;
     }
+
 
 
     // read string between " " all characters include
