@@ -19,6 +19,9 @@ public class Parser {
 
     /**
      * match next token with expected token
+     *
+     * @return ture when token is match, and print token and its string;
+     *        false when it is not match, and print error message
      */
     private boolean match(TOKEN expectedToken){
 
