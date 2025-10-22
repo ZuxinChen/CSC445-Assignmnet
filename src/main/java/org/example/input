@@ -5,5 +5,3 @@ write salary
 if x = y then endif
 if x = y then write x endif
 while x != y do calculate x = x + 1 endwhile
-Empty program. This is a program with no code in it. Just "". It just needs to
-match the SCANEOF token.

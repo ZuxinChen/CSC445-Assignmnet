@@ -20,7 +20,7 @@ public class Main {
                     System.out.println(token);
                     break;
                 }else{
-                    System.out.println(tokenString + " " + token);
+                    System.out.println(token + ":" +tokenString);
                 }
             }
 
