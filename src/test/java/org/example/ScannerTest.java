@@ -36,4 +36,16 @@ public class ScannerTest {
         System.out.println(token); // print EOF
     }
 
+    @Test
+    public void emptyString_test() throws IOException {
+        String input = "";
+        PushbackReader reader = new PushbackReader(new StringReader(input));
+        Scanner scanner = new Scanner(reader);
+        TOKEN token = scanner.scan();
+        String buffer = scanner.getTokenBufferString();
+
+        assertEquals(TOKEN.SCANEOF, token);
+        assertEquals("",buffer);
+    }
+
 }
