@@ -1,9 +1,11 @@
-var score123
-init score = 600
-calculate newsalary = originalsalary + raise
-write salary
-if x = y then endif
-if x = y then write x endif
-while x != y do calculate x = x + 1 endwhile
-Empty program. This is a program with no code in it. Just "". It just needs to
-match the SCANEOF token.
+var a
+var b
+init a = 1
+init b = 5
+while a != b do
+    calculate a = a + 1
+    write a
+    if a=b then
+        write a
+    endif
+endwhile

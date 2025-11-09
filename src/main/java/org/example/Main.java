@@ -1,8 +1,6 @@
 package org.example;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PushbackReader;
+import java.io.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -10,19 +8,16 @@ public class Main {
 
         String file = "src/main/java/org/example/input";
         try (FileReader fr = new FileReader(file)){
+            BufferedReader br = new BufferedReader(fr);
 
-            Scanner scanner = new Scanner(new PushbackReader(fr));
-
-            while(true){
-                TOKEN token = scanner.scan();
-                String tokenString = scanner.getTokenString();
-                if(token == TOKEN.SCANEOF) {
-                    System.out.println(token);
-                    break;
-                }else{
-                    System.out.println(tokenString + " " + token);
-                }
+            String line;
+            StringBuilder input = new StringBuilder();
+            while ((line = br.readLine()) != null) {
+                input.append(line);
             }
+
+            Parser parser = new Parser();
+            parser.parse(input.toString());
 
 
         } catch (IOException e) {

@@ -14,24 +14,30 @@ public class Parser {
     Map<String, SymbolTableItem> collection = new HashMap<>();
     Scanner scanner;
     TOKEN nextToken;
+    String buffer;
+    AbsSynTree absSynTree = new AbsSynTree();
 
+
+    public AbsSynTree getAbsSynTree(){
+        return absSynTree;
+    }
 
 
     /**
      * match next token with expected token
      */
     private boolean match(TOKEN expectedToken){
-
+        buffer = scanner.getTokenBufferString();
         try {
             if (nextToken == expectedToken) {
-                System.out.println(expectedToken + ": " + scanner.getTokenBufferString());
+                //System.out.println(expectedToken + ": " + buffer);
                 nextToken = scanner.scan();
                 return true;
             }else {
                 String str = "Parse Error" +
                         "\nExpected: " + expectedToken +
                         "\nReceived: " + nextToken +
-                        "\nBuffer: " + scanner.getTokenBufferString();
+                        "\nBuffer: " + buffer;
                 error(str);
             }
         }catch (IOException e){
@@ -55,7 +61,7 @@ public class Parser {
      */
     private void addVarToTable(){
         SymbolTableItem item = new SymbolTableItem();
-        item.name = scanner.getTokenBufferString();
+        item.name = buffer;
         item.type = TYPE.INTDATATYPE;
         if(!collection.containsKey(item.name)) {
             collection.put(item.name, item);
@@ -72,7 +78,8 @@ public class Parser {
         scanner = new Scanner(new PushbackReader(new StringReader(program)));
         try {
             nextToken = scanner.scan();
-            Program();
+            absSynTree.setNodeProgram(Program());
+            absSynTree.show();
             return true;
         } catch (IOException e) {
             error("Error parsing program");
@@ -86,15 +93,20 @@ public class Parser {
      * <Program> ::= <Vars> <Stmts> $
      * $ stands for end of file (SCANEOF).
      */
-    private void Program(){
-        Vars();
-        Stmts();
+    private AbsSynTree.NodeProgram Program(){
+        AbsSynTree.NodeVars vars;
+        AbsSynTree.NodeStmts stmts;
+
+        vars = Vars();
+        stmts = Stmts();
 
         if(nextToken == TOKEN.SCANEOF){
             System.out.println("Parsing completed successfully");
         }else {
             error("Unmatched EOF, unexpected token " + nextToken);
         }
+
+        return absSynTree. new NodeProgram(vars, stmts);
     }
 
     /**
@@ -102,28 +114,34 @@ public class Parser {
      * <Vars> ::= ""
      * First+(Vars) = {var, eof}
      */
-    private void Vars(){
-        if(nextToken == TOKEN.VAR){
-            Var();
-            Vars();
-        }
+    private AbsSynTree.NodeVars Vars(){
 
+        if(nextToken == TOKEN.VAR){
+            AbsSynTree.NodeId id = Var();
+            AbsSynTree.NodeVars vars = Vars();
+            vars.add(id);
+
+            return vars;
+        }
+        return absSynTree. new NodeVars();
     }
 
     /**
      * <Var> ::= var id
      * First+(Var) = {var}
      */
-    private void Var(){
+    private AbsSynTree.NodeId Var(){
         if(match(TOKEN.VAR)){
             if(match(TOKEN.ID)){
                 addVarToTable();
-                return;
+                String name = buffer;
+                return absSynTree.new NodeId(name);
             }
         }
 
         error("Var() failed, Stop on Token: " + nextToken);
 
+        return null;
     }
 
     /**
@@ -131,14 +149,20 @@ public class Parser {
      * <Stmts> ::= ""
      * First+(Stmts) = {write, init, if, while, calculate, eof}
      */
-    private void Stmts(){
+    private AbsSynTree.NodeStmts Stmts(){
+        AbsSynTree.NodeStmt stmt;
+        AbsSynTree.NodeStmts stmts;
         if(nextToken == TOKEN.WRITE || nextToken == TOKEN.INIT ||
                 nextToken == TOKEN.IF || nextToken == TOKEN.WHILE ||
                 nextToken == TOKEN.CALCULATE){
-            Stmt();
-            Stmts();
-        }
+            stmt = Stmt();
+            stmts = Stmts();
+            stmts.add(stmt);
 
+            return stmts;
+        }
+        
+        return absSynTree. new NodeStmts();
     }
 
 
@@ -150,11 +174,12 @@ public class Parser {
      * <Stmt> ::= calculate id equals <Add>
      * First+(Stmt) = {write, init, if, while, calculate}
      */
-    private void Stmt(){
+    private AbsSynTree.NodeStmt Stmt(){
         if(nextToken == TOKEN.WRITE){
             if(match(TOKEN.WRITE)){
                 if(match(TOKEN.ID)){
-                    return;
+                    AbsSynTree.NodeId id = absSynTree.new NodeId(buffer);
+                    return absSynTree.new NodeWrite(id);
                 }
             }
         }
@@ -162,9 +187,13 @@ public class Parser {
         else if(nextToken == TOKEN.INIT){
             if(match(TOKEN.INIT)){
                 if(match(TOKEN.ID)){
+                    AbsSynTree.NodeId id = absSynTree.new NodeId(buffer);
+
                     if(match(TOKEN.EQUALS)){
                         if(match(TOKEN.INTLITERAL)){
-                            return;
+                            int intLiteral = Integer.parseInt(buffer);
+                            AbsSynTree.NodeIntLiteral value = absSynTree.new NodeIntLiteral(intLiteral);
+                            return absSynTree.new NodeInit(id, value);
                         }
                     }
                 }
@@ -174,12 +203,15 @@ public class Parser {
         else if(nextToken == TOKEN.IF){
             if(match(TOKEN.IF)){
                 if(match(TOKEN.ID)){
+                    AbsSynTree.NodeId id1 = absSynTree.new NodeId(buffer);
                     if(match(TOKEN.EQUALS)){
                         if(match(TOKEN.ID)){
+                            AbsSynTree.NodeId id2 = absSynTree.new NodeId(buffer);
+
                             if(match(TOKEN.THEN)){
-                                Stmts();
+                                AbsSynTree.NodeStmts stmts = Stmts();
                                 if(match(TOKEN.ENDIF)){
-                                    return;
+                                    return absSynTree.new NodeIf(id1, id2, stmts);
                                 }
                             }
                         }
@@ -191,12 +223,16 @@ public class Parser {
         else if(nextToken == TOKEN.WHILE){
             if(match(TOKEN.WHILE)){
                 if(match(TOKEN.ID)){
+                    AbsSynTree.NodeId id1 = absSynTree.new NodeId(buffer);
+
                     if(match(TOKEN.NOTEQUALS)){
                         if(match(TOKEN.ID)){
+                            AbsSynTree.NodeId id2 = absSynTree.new NodeId(buffer);
+
                             if(match(TOKEN.DO)){
-                                Stmts();
+                                AbsSynTree.NodeStmts stmts = Stmts();
                                 if(match(TOKEN.ENDWHILE)){
-                                    return;
+                                    return absSynTree. new NodeWhile(id1, id2, stmts);
                                 }
                             }
                         }
@@ -208,9 +244,11 @@ public class Parser {
         else if(nextToken == TOKEN.CALCULATE){
             if(match(TOKEN.CALCULATE)){
                 if(match(TOKEN.ID)){
+                    AbsSynTree.NodeId id = absSynTree.new NodeId(buffer);
+
                     if(match(TOKEN.EQUALS)){
-                        Add();
-                        return;
+                        AbsSynTree.NodeExpr expr = Add();
+                        return absSynTree.new NodeCalculate(id, expr);
                     }
                 }
             }
@@ -219,20 +257,24 @@ public class Parser {
         error("Stmt() failed, Stop on Token: " + nextToken);
 
 
-
+        return null;
     }
 
     /**
      * <Add> ::= <Value> <AddEnd>
      * First+(Add) = {id, intliteral}
      */
-    private void Add(){
+    private AbsSynTree.NodePlus Add(){
+        AbsSynTree.NodeExpr id1 = null;
+        AbsSynTree.NodeExpr id2 = null;
         if(nextToken == TOKEN.ID || nextToken == TOKEN.INTLITERAL){
-            Value();
-            AddEnd();
+            id1 = Value();
+            id2 = AddEnd();
         }else {
             error("Add() failed, Stop on Token: " + nextToken);
         }
+
+        return absSynTree. new NodePlus(id1, id2);
     }
 
     /**
@@ -240,13 +282,22 @@ public class Parser {
      * <AddEnd> ::= ""
      * First+(AddEnd) = {plus, eof}
      */
-    private void AddEnd(){
+    private AbsSynTree.NodeExpr AddEnd(){
+        AbsSynTree.NodeExpr expr1;
+        AbsSynTree.NodeExpr expr2;
         if(nextToken == TOKEN.PLUS){
             if(match(TOKEN.PLUS)){
-                Value();
-                AddEnd();
+                expr1 = Value();
+                expr2 = AddEnd();
+
+                if(expr2 == null){
+                    return expr1;
+                }
+
+                return absSynTree.new NodePlus(expr1, expr2);
             }
         }
+        return null;
     }
 
     /**
@@ -254,13 +305,25 @@ public class Parser {
      * <Value> ::= intliteral
      * First+(Value) = {id, intliteral}
      */
-    private void Value(){
+    private AbsSynTree.NodeExpr Value(){
         if(nextToken == TOKEN.ID || nextToken == TOKEN.INTLITERAL){
-            match(nextToken);
+
+            if (nextToken == TOKEN.ID){
+                match(TOKEN.ID);
+                String name = buffer;
+                return absSynTree.new NodeId(name);
+            } else {
+
+                match(TOKEN.INTLITERAL);
+                int intLiteral = Integer.parseInt(buffer);
+                return absSynTree.new NodeIntLiteral(intLiteral);
+            }
+
         } else {
             error("Value() failed, Stop on Token: " + nextToken);
         }
 
+        return null;
     }
 
 }
