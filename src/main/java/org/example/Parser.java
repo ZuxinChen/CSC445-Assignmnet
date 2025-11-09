@@ -29,7 +29,7 @@ public class Parser {
      * @return ture when token is match, and print token and its string;
      *        false when it is not match, and print error message
      */
-    private boolean match(TOKEN expectedToken){
+    private boolean match(TOKEN expectedToken) throws Exception {
         buffer = scanner.getTokenBufferString();
         try {
             if (nextToken == expectedToken) {
@@ -44,7 +44,7 @@ public class Parser {
                 error(str);
             }
         }catch (IOException e){
-            error("Error Scanning");
+            throw new Exception("Error Scanning");
         }
 
         return false;
@@ -56,20 +56,19 @@ public class Parser {
      */
     private void error(String message){
         System.out.println(message);
-        System.exit(1);
     }
 
     /**
      * add variable to symbol table, when it is not exist
      */
-    private void addVarToTable(){
+    private void addVarToTable() throws Exception {
         SymbolTableItem item = new SymbolTableItem();
         item.name = buffer;
         item.type = TYPE.INTDATATYPE;
         if(!collection.containsKey(item.name)) {
             collection.put(item.name, item);
         }else {
-            error("Duplicate Variable " + item.name);
+            throw new Exception("Duplicate Variable " + item.name);
         }
 
     }
@@ -84,8 +83,9 @@ public class Parser {
             absSynTree.setNodeProgram(Program());
             absSynTree.show();
             return true;
-        } catch (IOException e) {
-            error("Error parsing program");
+        } catch (Exception e) {
+            error(e.getMessage());
+
             return false;
         }
     }
@@ -96,7 +96,7 @@ public class Parser {
      * <Program> ::= <Vars> <Stmts> $
      * $ stands for end of file (SCANEOF).
      */
-    private AbsSynTree.NodeProgram Program(){
+    private AbsSynTree.NodeProgram Program() throws Exception {
         AbsSynTree.NodeVars vars;
         AbsSynTree.NodeStmts stmts;
 
@@ -106,7 +106,7 @@ public class Parser {
         if(nextToken == TOKEN.SCANEOF){
             System.out.println("Parsing completed successfully");
         }else {
-            error("Unmatched EOF, unexpected token " + nextToken);
+            throw new Exception("Unmatched EOF, unexpected token " + nextToken);
         }
 
         return absSynTree. new NodeProgram(vars, stmts);
@@ -117,7 +117,7 @@ public class Parser {
      * <Vars> ::= ""
      * First+(Vars) = {var, eof}
      */
-    private AbsSynTree.NodeVars Vars(){
+    private AbsSynTree.NodeVars Vars() throws Exception {
 
         if(nextToken == TOKEN.VAR){
             AbsSynTree.NodeId id = Var();
@@ -133,7 +133,7 @@ public class Parser {
      * <Var> ::= var id
      * First+(Var) = {var}
      */
-    private AbsSynTree.NodeId Var(){
+    private AbsSynTree.NodeId Var() throws Exception {
         if(match(TOKEN.VAR)){
             if(match(TOKEN.ID)){
                 addVarToTable();
@@ -142,9 +142,8 @@ public class Parser {
             }
         }
 
-        error("Var() failed, Stop on Token: " + nextToken);
+        throw new Exception("Var() failed, Stop on Token: " + nextToken);
 
-        return null;
     }
 
     /**
@@ -152,7 +151,7 @@ public class Parser {
      * <Stmts> ::= ""
      * First+(Stmts) = {write, init, if, while, calculate, eof}
      */
-    private AbsSynTree.NodeStmts Stmts(){
+    private AbsSynTree.NodeStmts Stmts() throws Exception {
         AbsSynTree.NodeStmt stmt;
         AbsSynTree.NodeStmts stmts;
         if(nextToken == TOKEN.WRITE || nextToken == TOKEN.INIT ||
@@ -177,7 +176,7 @@ public class Parser {
      * <Stmt> ::= calculate id equals <Add>
      * First+(Stmt) = {write, init, if, while, calculate}
      */
-    private AbsSynTree.NodeStmt Stmt(){
+    private AbsSynTree.NodeStmt Stmt() throws Exception {
         if(nextToken == TOKEN.WRITE){
             if(match(TOKEN.WRITE)){
                 if(match(TOKEN.ID)){
@@ -257,17 +256,15 @@ public class Parser {
             }
         }
 
-        error("Stmt() failed, Stop on Token: " + nextToken);
+        throw new Exception("Stmt() failed, Stop on Token: " + nextToken);
 
-
-        return null;
     }
 
     /**
      * <Add> ::= <Value> <AddEnd>
      * First+(Add) = {id, intliteral}
      */
-    private AbsSynTree.NodePlus Add(){
+    private AbsSynTree.NodePlus Add() throws Exception {
         AbsSynTree.NodeExpr id1 = null;
         AbsSynTree.NodeExpr id2 = null;
         if(nextToken == TOKEN.ID || nextToken == TOKEN.INTLITERAL){
@@ -285,7 +282,7 @@ public class Parser {
      * <AddEnd> ::= ""
      * First+(AddEnd) = {plus, eof}
      */
-    private AbsSynTree.NodeExpr AddEnd(){
+    private AbsSynTree.NodeExpr AddEnd() throws Exception {
         AbsSynTree.NodeExpr expr1;
         AbsSynTree.NodeExpr expr2;
         if(nextToken == TOKEN.PLUS){
@@ -308,7 +305,7 @@ public class Parser {
      * <Value> ::= intliteral
      * First+(Value) = {id, intliteral}
      */
-    private AbsSynTree.NodeExpr Value(){
+    private AbsSynTree.NodeExpr Value() throws Exception {
         if(nextToken == TOKEN.ID || nextToken == TOKEN.INTLITERAL){
 
             if (nextToken == TOKEN.ID){
@@ -323,10 +320,9 @@ public class Parser {
             }
 
         } else {
-            error("Value() failed, Stop on Token: " + nextToken);
+            throw new Exception("Value() failed, Stop on Token: " + nextToken);
         }
 
-        return null;
     }
 
 }
