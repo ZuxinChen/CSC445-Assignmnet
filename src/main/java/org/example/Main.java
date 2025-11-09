@@ -13,7 +13,7 @@ public class Main {
             String line;
             StringBuilder input = new StringBuilder();
             while ((line = br.readLine()) != null) {
-                input.append(line);
+                input.append(line).append("\n");
             }
 
             Parser parser = new Parser();

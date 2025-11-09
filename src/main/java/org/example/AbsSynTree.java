@@ -2,6 +2,10 @@ package org.example;
 
 import java.util.ArrayList;
 
+/**
+ * Assignment 3 Abstract Syntax Tree
+ */
+
 public class AbsSynTree {
     NodeProgram nodeProgram;
 
