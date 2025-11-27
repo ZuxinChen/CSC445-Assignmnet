@@ -13,7 +13,7 @@ public class AbsSynTree {
     List<String> assemblyCode = new ArrayList<>();
     private int register = 1;
     private int labelCount = 1;
-    private String registerName = "ri";
+    private final String registerName = "ri";
 
     public NodeProgram getNodeProgram() {
         return nodeProgram;
