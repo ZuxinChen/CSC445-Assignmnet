@@ -1,6 +1,7 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Assignment 3 Abstract Syntax Tree
@@ -8,6 +9,11 @@ import java.util.ArrayList;
 
 public class AbsSynTree {
     NodeProgram nodeProgram;
+    List<String> ASTProgram = new ArrayList<>();
+    List<String> assemblyCode = new ArrayList<>();
+    private int register = 1;
+    private int labelCount = 1;
+    private String registerName = "ri";
 
     public NodeProgram getNodeProgram() {
         return nodeProgram;
@@ -19,10 +25,17 @@ public class AbsSynTree {
 
     public void show(){
         nodeProgram.show();
+        //System.out.println(String.join("\n", ASTProgram));
+    }
+
+    public String getCode(){
+        nodeProgram.createCode();
+        return String.join("\n", assemblyCode);
     }
 
     public abstract class NodeBase{
         public abstract void show();
+        public abstract String createCode();
     }
 
     public abstract class NodeExpr extends NodeBase{
@@ -40,7 +53,15 @@ public class AbsSynTree {
 
         @Override
         public void show(){
-            System.out.println("AST id: " +name);
+            ASTProgram.add("AST id: " +name);
+        }
+
+        @Override
+        public String createCode() {
+            String reg = registerName + register++;
+            String code = String.format("loadintvar %s,%s", reg, name);
+            assemblyCode.add(code);
+            return reg;
         }
     }
     public class NodeIntLiteral extends NodeExpr{
@@ -52,7 +73,15 @@ public class AbsSynTree {
 
         @Override
         public void show(){
-            System.out.println("AST int literal " + value);
+            ASTProgram.add("AST int literal " + value);
+        }
+
+        @Override
+        public String createCode() {
+            String reg = registerName + register++;
+            String code = String.format("loadintliteral %s, %d", reg, value);
+            assemblyCode.add(code);
+            return reg;
         }
     }
     public class NodePlus extends NodeExpr{
@@ -64,11 +93,21 @@ public class AbsSynTree {
         }
         @Override
         public void show(){
-            System.out.println("AST plus");
-            System.out.print("LHS:");
+            ASTProgram.add("AST plus");
+            ASTProgram.add("LHS:");
             left.show();
-            System.out.print("RHS:");
+            ASTProgram.add("RHS:");
             right.show();
+        }
+
+        @Override
+        public String createCode() {
+            String leftRegister = left.createCode();
+            String rightRegister = right.createCode();
+            String resultRegister = registerName + register++;
+            String code = String.format("add %s,%s,%s", leftRegister, rightRegister, resultRegister);
+            assemblyCode.add(code);
+            return resultRegister;
         }
     }
 
@@ -80,24 +119,42 @@ public class AbsSynTree {
 
         @Override
         public void show() {
-            System.out.println("AST write");
+            ASTProgram.add("AST write");
             id.show();
+        }
+
+        @Override
+        public String createCode() {
+            String code = String.format("printi %s", id.name);
+            assemblyCode.add(code);
+            return "";
         }
     }
 
     public class NodeInit extends NodeStmt{
         public NodeId id;
-        public NodeIntLiteral value;
+        public NodeIntLiteral var;
         public NodeInit(NodeId id, NodeIntLiteral value){
             this.id = id;
-            this.value = value;
+            this.var = value;
         }
 
         @Override
         public void show() {
-            System.out.println("AST init");
+            ASTProgram.add("AST init");
             id.show();
-            value.show();
+            var.show();
+        }
+
+        @Override
+        public String createCode() {
+            String reg = var.createCode();
+
+            String code = String.format("storeintvar %s, %s", reg, id.name);
+
+            assemblyCode.add(code);
+
+            return reg;
         }
     }
 
@@ -111,9 +168,17 @@ public class AbsSynTree {
 
         @Override
         public void show() {
-            System.out.println("AST calculate");
+            ASTProgram.add("AST calculate");
             id.show();
             expr.show();
+        }
+
+        @Override
+        public String createCode() {
+            String reg = expr.createCode();
+            String code = String.format("storeintvar %s, %s", reg, id.name);
+            assemblyCode.add(code);
+            return "";
         }
     }
 
@@ -129,6 +194,16 @@ public class AbsSynTree {
                 stmt.show();
             }
         }
+
+        @Override
+        public String createCode() {
+
+            for(NodeStmt stmt : stmts){
+                assemblyCode.add("");
+                stmt.createCode();
+            }
+            return "";
+        }
     }
 
     public class NodeIf extends NodeStmt{
@@ -143,14 +218,31 @@ public class AbsSynTree {
 
         @Override
         public void show() {
-            System.out.println("\nAST if");
-            System.out.print("LHS:");
+            ASTProgram.add("\nAST if");
+            ASTProgram.add("LHS:");
             left.show();
-            System.out.print("RHS:");
+            ASTProgram.add("RHS:");
             right.show();
-            System.out.println("if body");
+            ASTProgram.add("if body");
             stmts.show();
-            System.out.println("\nAST endif");
+            ASTProgram.add("\nAST endif");
+        }
+
+        @Override
+        public String createCode() {
+            String reg1 = left.createCode();
+            String reg2 = right.createCode();
+            String endIfLabel = String.format("label%d", labelCount++);
+            assemblyCode.add(";if");
+            String code1 = String.format("bne %s, %s, %s", reg1, reg2, endIfLabel);
+            assemblyCode.add(code1);
+
+            String code2 = stmts.createCode();
+            assemblyCode.add(code2);
+
+            String code3 = String.format(":%s", endIfLabel);
+            assemblyCode.add(code3);
+            return "";
         }
     }
 
@@ -166,14 +258,42 @@ public class AbsSynTree {
 
         @Override
         public void show() {
-            System.out.println("\nAST While");
-            System.out.print("LHS: ");
+            ASTProgram.add("\nAST While");
+            ASTProgram.add("LHS: ");
             left.show();
-            System.out.print("RHS: ");
+            ASTProgram.add("RHS: ");
             right.show();
-            System.out.println("While body");
+            ASTProgram.add("While body");
             stmts.show();
-            System.out.println("\nAST endwhile");
+            ASTProgram.add("\nAST endwhile");
+        }
+
+        @Override
+        public String createCode() {
+
+
+            String whileLabel = String.format("label%d", labelCount++);
+            String endWhileLabel = String.format("label%d", labelCount++);
+
+            String code1 = String.format(":%s", whileLabel);
+            assemblyCode.add(code1);
+
+            String reg1 = left.createCode();
+            String reg2 = right.createCode();
+            assemblyCode.add(";While");
+            String code2 = String.format("be %s, %s, %s", reg1, reg2, endWhileLabel);
+            assemblyCode.add(code2);
+
+            String code3 = stmts.createCode();
+            assemblyCode.add(code3);
+
+            String code4 = String.format("branch %s", whileLabel);
+            assemblyCode.add(code4);
+
+            String code5 = String.format(":%s", endWhileLabel);
+            assemblyCode.add(code5);
+
+            return "";
         }
     }
 
@@ -193,6 +313,14 @@ public class AbsSynTree {
                 id.show();
             }
         }
+
+        @Override
+        public String createCode() {
+            for(NodeId id : vars){
+                id.createCode();
+            }
+            return "";
+        }
     }
 
     public class NodeProgram extends NodeBase{
@@ -206,10 +334,18 @@ public class AbsSynTree {
 
         @Override
         public void show() {
-            System.out.println("AST Variables");
+            ASTProgram.add("AST Variables");
             vars.show();
-            System.out.println("\nAST Statements");
+            ASTProgram.add("\nAST Statements");
             stmts.show();
+        }
+
+        @Override
+        public String createCode() {
+            assemblyCode.add("\n.code");
+            vars.createCode();
+            stmts.createCode();
+            return "";
         }
     }
 }
