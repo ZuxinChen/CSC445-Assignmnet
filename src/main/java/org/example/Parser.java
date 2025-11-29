@@ -11,7 +11,7 @@ import java.util.Map;
  */
 
 public class Parser {
-    Map<String, SymbolTableItem> collection = new HashMap<>();
+    Map<String, SymbolTableItem> collection = new HashMap<>(); // symbol table for variables and its types
     Scanner scanner;
     TOKEN nextToken;
     String buffer;

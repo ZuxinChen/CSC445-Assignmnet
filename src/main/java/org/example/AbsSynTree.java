@@ -9,11 +9,11 @@ import java.util.List;
 
 public class AbsSynTree {
     NodeProgram nodeProgram;
-    List<String> ASTProgram = new ArrayList<>();
-    List<String> assemblyCode = new ArrayList<>();
-    private int register = 1;
-    private int labelCount = 1;
-    private final String registerName = "ri";
+    List<String> ASTProgram = new ArrayList<>(); // AST output, for print or debug
+    List<String> assemblyCode = new ArrayList<>(); // assembly code output
+    private int register = 1;  // register's count for variable using
+    private int labelCount = 1; // label's count for beach jump
+    private final String registerName = "ri"; // register name is ri not r only
 
     public NodeProgram getNodeProgram() {
         return nodeProgram;
@@ -23,15 +23,25 @@ public class AbsSynTree {
         this.nodeProgram = nodeProgram;
     }
 
+    /**
+     * show the AST
+     * uncomment to print the AST
+     */
     public void show(){
         nodeProgram.show();
         //System.out.println(String.join("\n", ASTProgram));
     }
 
+    // get the assembly code
     public String getCode(){
         nodeProgram.createCode();
         return String.join("\n", assemblyCode);
     }
+
+    /**
+     * ================================================================
+     * Abstract Syntax Tree using the inner class
+     */
 
     public abstract class NodeBase{
         public abstract void show();
@@ -39,11 +49,15 @@ public class AbsSynTree {
     }
 
     public abstract class NodeExpr extends NodeBase{
+        @Override
         public abstract void show();
     }
+
     public abstract class NodeStmt extends NodeBase{
+        @Override
         public abstract void show();
     }
+
     public class NodeId extends NodeExpr{
         public String name;
 
@@ -64,6 +78,7 @@ public class AbsSynTree {
             return reg;
         }
     }
+
     public class NodeIntLiteral extends NodeExpr{
         public int value;
 
@@ -84,6 +99,7 @@ public class AbsSynTree {
             return reg;
         }
     }
+
     public class NodePlus extends NodeExpr{
         public NodeExpr left;
         public NodeExpr right;

@@ -92,7 +92,6 @@ public class Scanner {
     }
 
 
-
     // read string between " " all characters include
     private TOKEN StringToken(int c){
         TokenString.setLength(0); // clear the buffer

@@ -12,20 +12,28 @@ public class Main {
         String inputFile = "src/main/java/org/example/input";
         String outputFile = "src/main/java/org/example/output";
 
+        //1. read file and parsing
         String input = readFile(inputFile);
         parser.parse(input);
 
+        //2. generate assemble code
         String data = data(parser.collection);
         String code = parser.getAbsSynTree().getCode();
         String assembleCode = data + code;
         pushToFile(assembleCode, outputFile);
 
+        //3. run assembler
         String output = readFile(outputFile);
         //System.out.println(output);
         runAssembler(output);
 
     }
 
+    /**
+     * read file
+     * @param file path
+     * @return string content of file
+     */
     public static String readFile(String file){
         try (FileReader fr = new FileReader(file)){
             BufferedReader br = new BufferedReader(fr);
@@ -45,6 +53,12 @@ public class Main {
 
     }
 
+    /**
+     * write assemble code to the file
+     * @param assembleCode string content of assemble code
+     * @param outputFile path
+     */
+
     public static void pushToFile(String assembleCode, String outputFile){
         try (FileWriter fw = new FileWriter(outputFile)){
             fw.write(assembleCode);
@@ -54,7 +68,11 @@ public class Main {
         }
     }
 
-
+    /**
+     * generate data section, which indicates the variable type of variable from symbol table
+     * @param collection symbol table
+     * @return string content of data section
+     */
     public static String data(Map<String, SymbolTableItem> collection){
         StringBuilder data = new StringBuilder(".data\n");
         for(String key : collection.keySet()){
@@ -68,6 +86,10 @@ public class Main {
         return data.toString();
     }
 
+    /**
+     * run assembler by code string
+     * @param code assemble code
+     */
     public static void runAssembler(String code){
 //        String code = "";
 //        code += ".data\n";
@@ -99,8 +121,8 @@ public class Main {
             // Creates a Java bytecode class file
             pseudoAssemblyWithStringProgram.generateBytecode();
             // Run the Java bytecode class file and show output on the console
-            PrintStream outstream = new PrintStream(System.out);
-            pseudoAssemblyWithStringProgram.run(outstream);
+            PrintStream outStream = new PrintStream(System.out);
+            pseudoAssemblyWithStringProgram.run(outStream);
         }
     }
 
