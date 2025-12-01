@@ -22,7 +22,6 @@ public class Parser {
         return absSynTree;
     }
 
-
     /**
      * match next token with expected token
      *

@@ -27,6 +27,20 @@ public class Main {
         //System.out.println(output);
         runAssembler(output);
 
+        //4. show register track
+        System.out.println("==============Register Track=============");
+        //sort by key in order
+        parser.absSynTree.registerTrack.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey((k1, k2) -> {
+                    // remain the number parts and compare
+                    int num1 = Integer.parseInt(k1.replaceAll("\\D+", ""));
+                    int num2 = Integer.parseInt(k2.replaceAll("\\D+", ""));
+                    return Integer.compare(num1, num2);
+                }))
+                .forEach(entry -> System.out.println(entry.getKey() + ":" + entry.getValue()));
+
+
     }
 
     /**
@@ -60,8 +74,8 @@ public class Main {
      */
 
     public static void pushToFile(String assembleCode, String outputFile){
-        try (FileWriter fw = new FileWriter(outputFile)){
-            fw.write(assembleCode);
+        try (PrintStream ps = new PrintStream(outputFile)){
+            ps.println(assembleCode);
         } catch (IOException e) {
             System.out.println("not finding the file");
             throw new RuntimeException(e);

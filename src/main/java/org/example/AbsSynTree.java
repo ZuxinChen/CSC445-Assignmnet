@@ -1,19 +1,25 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Assignment 3 Abstract Syntax Tree
+ * Assignment 4 Assembly Code Generator
  */
 
 public class AbsSynTree {
     NodeProgram nodeProgram;
     List<String> ASTProgram = new ArrayList<>(); // AST output, for print or debug
     List<String> assemblyCode = new ArrayList<>(); // assembly code output
+    Map<String, String> registerTrack = new HashMap<>(); // track register
+
     private int register = 1;  // register's count for variable using
     private int labelCount = 1; // label's count for beach jump
     private final String registerName = "ri"; // register name is ri not r only
+
 
     public NodeProgram getNodeProgram() {
         return nodeProgram;
@@ -75,6 +81,7 @@ public class AbsSynTree {
             String reg = registerName + register++;
             String code = String.format("loadintvar %s,%s", reg, name);
             assemblyCode.add(code);
+            registerTrack.put(reg,name);
             return reg;
         }
     }
@@ -96,6 +103,7 @@ public class AbsSynTree {
             String reg = registerName + register++;
             String code = String.format("loadintliteral %s, %d", reg, value);
             assemblyCode.add(code);
+            registerTrack.put(reg,String.valueOf(value));
             return reg;
         }
     }
@@ -123,6 +131,7 @@ public class AbsSynTree {
             String resultRegister = registerName + register++;
             String code = String.format("add %s,%s,%s", leftRegister, rightRegister, resultRegister);
             assemblyCode.add(code);
+            registerTrack.put(resultRegister,registerTrack.get(leftRegister) + " + " + registerTrack.get(rightRegister));
             return resultRegister;
         }
     }
@@ -165,11 +174,8 @@ public class AbsSynTree {
         @Override
         public String createCode() {
             String reg = var.createCode();
-
             String code = String.format("storeintvar %s, %s", reg, id.name);
-
             assemblyCode.add(code);
-
             return reg;
         }
     }
